@@ -174,11 +174,14 @@ main() {
         sed -i "1s/.*/# $service_name/" README.md
         sed -i "3s/.*/A $service_description./" README.md
 
-        # Update clone example in setup section
-        sed -i "s|git clone https://github.com/c1moore/go-http-server-template.git my-service|# This service was created from the Go HTTP Server Template|g" README.md
-        sed -i "s|cd my-service||g" README.md
-        sed -i "s|go mod edit -module github.com/yourorg/my-service|# Module name already updated during setup|g" README.md
-        sed -i "s|find . -name \"*.go\" -exec sed -i 's|github.com/c1moore/go-http-server-template|github.com/yourorg/my-service|g' {} +|# Import paths already updated during setup|g" README.md
+        # Remove the Setup section since it's no longer needed after running this script
+        # Find the Setup section and delete everything from there to the end of the file
+        if grep -q "## Setup (Steps to Use This Template)" README.md; then
+            # Create a temporary file with everything before the Setup section
+            sed '/## Setup (Steps to Use This Template)/,$d' README.md > README.tmp
+            mv README.tmp README.md
+            log_info "   Removed Setup section (no longer needed after automated setup)"
+        fi
 
         log_success "Updated README.md"
     else
