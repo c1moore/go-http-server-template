@@ -1,0 +1,44 @@
+name: Pull Request
+
+on: [pull_request]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set Up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Deps
+        run: make init
+
+      - name: Download Modules
+        run: go mod download
+
+      - name: Check Formatting
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "Code is not formatted. Run 'make fmt'"
+            gofmt -s -l .
+            exit 1
+          fi
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+
+      - name: Vet
+        run: make vet
+
+      - name: Vulnerability Check
+        run: make deps
+
+      - name: Tests
+        run: make test
+
+      - name: Build
+        run: make build
